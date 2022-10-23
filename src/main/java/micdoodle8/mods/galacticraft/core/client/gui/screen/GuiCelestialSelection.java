@@ -1,6 +1,5 @@
 package micdoodle8.mods.galacticraft.core.client.gui.screen;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ibm.icu.text.ArabicShaping;
 import com.ibm.icu.text.ArabicShapingException;
@@ -14,6 +13,7 @@ import micdoodle8.mods.galacticraft.api.galaxies.*;
 import micdoodle8.mods.galacticraft.api.recipe.SpaceStationRecipe;
 import micdoodle8.mods.galacticraft.api.world.SpaceStationType;
 import micdoodle8.mods.galacticraft.core.GalacticraftCore;
+import micdoodle8.mods.galacticraft.core.client.gui.GuiCelestialSelectionHelper;
 import micdoodle8.mods.galacticraft.core.network.PacketSimple;
 import micdoodle8.mods.galacticraft.core.network.PacketSimple.EnumSimplePacket;
 import micdoodle8.mods.galacticraft.core.proxy.ClientProxyCore;
@@ -31,7 +31,6 @@ import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.settings.GameSettings;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.MinecraftForge;
@@ -77,7 +76,7 @@ public class GuiCelestialSelection extends GuiScreen {
     protected EnumSelectionState selectionState = EnumSelectionState.PREVIEW;
     protected int selectionCount = 0;
     protected int zoomTooltipPos = 0;
-    protected Object selectedParent = GalacticraftCore.solarSystemSol;
+    protected IDisplayableBody selectedParent = GalacticraftCore.solarSystemSol;
     protected final boolean mapMode;
     public List<CelestialBody> possibleBodies;
 
@@ -125,135 +124,15 @@ public class GuiCelestialSelection extends GuiScreen {
         GuiCelestialSelection.BORDER_EDGE_WIDTH = GuiCelestialSelection.BORDER_WIDTH / 4;
     }
 
-    protected String getGrandparentName() {
-        if (this.selectedParent instanceof Planet) {
-            SolarSystem parentSolarSystem = ((Planet) this.selectedParent).getParentSolarSystem();
-
-            if (parentSolarSystem != null) {
-                return parentSolarSystem.getLocalizedParentGalaxyName();
-            }
-        } else if (this.selectedParent instanceof IChildBody) {
-            Planet parentPlanet = ((IChildBody) this.selectedParent).getParentPlanet();
-
-            if (parentPlanet != null) {
-                SolarSystem parentSolarSystem = parentPlanet.getParentSolarSystem();
-
-                if (parentSolarSystem != null) {
-                    return parentSolarSystem.getLocalizedName();
-                }
-            }
-        } else if (this.selectedParent instanceof Star) {
-            SolarSystem parentSolarSystem = ((Star) this.selectedParent).getParentSolarSystem();
-
-            if (parentSolarSystem != null) {
-                return parentSolarSystem.getLocalizedParentGalaxyName();
-            }
-        } else if (this.selectedParent instanceof SolarSystem) {
-            return ((SolarSystem) this.selectedParent).getLocalizedParentGalaxyName();
-        }
-
-        return "Null";
-    }
-
-    protected int getSatelliteParentID(Satellite satellite) {
-        return satellite.getParentPlanet().getDimensionID();
-    }
-
-    protected String getParentName() {
-        if (this.selectedParent instanceof Planet) {
-            SolarSystem parentSolarSystem = ((Planet) this.selectedParent).getParentSolarSystem();
-
-            if (parentSolarSystem != null) {
-                return parentSolarSystem.getLocalizedName();
-            }
-        } else if (this.selectedParent instanceof IChildBody) {
-            Planet parentPlanet = ((IChildBody) this.selectedParent).getParentPlanet();
-
-            if (parentPlanet != null) {
-                return parentPlanet.getLocalizedName();
-            }
-        } else if (this.selectedParent instanceof SolarSystem) {
-            return ((SolarSystem) this.selectedParent).getLocalizedName();
-        } else if (this.selectedParent instanceof Star) {
-            SolarSystem parentSolarSystem = ((Star) this.selectedParent).getParentSolarSystem();
-
-            if (parentSolarSystem != null) {
-                return parentSolarSystem.getLocalizedName();
-            }
-        }
-
-        return "Null";
-    }
-
-    protected float getScale(CelestialBody celestialBody) {
-        return 3.0F
-                * celestialBody.getRelativeDistanceFromCenter().unScaledDistance
-                * (celestialBody instanceof Planet ? 25.0F : 1.0F / 5.0F);
-    }
-
-    protected List<CelestialBody> getSiblings(CelestialBody celestialBody) {
-        List<CelestialBody> bodyList = Lists.newArrayList();
-
-        if (celestialBody instanceof Planet) {
-            SolarSystem solarSystem = ((Planet) celestialBody).getParentSolarSystem();
-
-            for (Planet planet : GalaxyRegistry.getRegisteredPlanets().values()) {
-                SolarSystem solarSystem1 = planet.getParentSolarSystem();
-
-                if (solarSystem1 != null && solarSystem1.equals(solarSystem)) {
-                    bodyList.add(planet);
-                }
-            }
-        } else if (celestialBody instanceof IChildBody) {
-            Planet planet = ((IChildBody) celestialBody).getParentPlanet();
-
-            for (Moon moon : GalaxyRegistry.getRegisteredMoons().values()) {
-                Planet planet1 = moon.getParentPlanet();
-
-                if (planet1 != null && planet1.equals(planet)) {
-                    bodyList.add(moon);
-                }
-            }
-        }
-
-        Collections.sort(bodyList);
-
-        return bodyList;
-    }
-
-    protected List<CelestialBody> getChildren(Object object) {
-        List<CelestialBody> bodyList = Lists.newArrayList();
-
-        if (object instanceof Planet) {
-            List<Moon> moons = GalaxyRegistry.getMoonsForPlanet((Planet) object);
-            bodyList.addAll(moons);
-        } else if (object instanceof SolarSystem) {
-            List<Planet> planets = GalaxyRegistry.getPlanetsForSolarSystem((SolarSystem) object);
-            bodyList.addAll(planets);
-        }
-
-        Collections.sort(bodyList);
-
-        return bodyList;
-    }
-
-    protected float lerp(float v0, float v1, float t) {
-        return v0 + t * (v1 - v0);
-    }
-
-    protected Vector2f lerpVec2(Vector2f v0, Vector2f v1, float t) {
-        return new Vector2f(v0.x + t * (v1.x - v0.x), v0.y + t * (v1.y - v0.y));
-    }
-
     protected float getZoomAdvanced() {
         if (this.ticksTotal < 30) {
             float scale = Math.max(0.0F, Math.min(this.ticksTotal / 30.0F, 1.0F));
-            return this.lerp(-0.75F, 0.0F, (float) Math.pow(scale, 0.5F));
+            return GuiCelestialSelectionHelper.lerp(-0.75F, 0.0F, (float) Math.pow(scale, 0.5F));
         }
 
         if (this.selectedBody == null) {
             if (!this.doneZooming) {
-                float unselectScale = this.lerp(
+                float unselectScale = GuiCelestialSelectionHelper.lerp(
                         this.zoom,
                         this.preSelectZoom,
                         Math.max(0.0F, Math.min(this.ticksSinceUnselection / 100.0F, 1.0F)));
@@ -278,7 +157,8 @@ public class GuiCelestialSelection extends GuiScreen {
         }
 
         if (!this.doneZooming) {
-            float f = this.lerp(this.zoom, 12, Math.max(0.0F, Math.min((this.ticksSinceSelection - 20) / 40.0F, 1.0F)));
+            float f = GuiCelestialSelectionHelper.lerp(
+                    this.zoom, 12, Math.max(0.0F, Math.min((this.ticksSinceSelection - 20) / 40.0F, 1.0F)));
 
             if (f >= 11.95F) {
                 this.doneZooming = true;
@@ -297,7 +177,7 @@ public class GuiCelestialSelection extends GuiScreen {
                 if (f0 >= 0.999999F) {
                     this.ticksSinceUnselection = 0;
                 }
-                return this.lerpVec2(this.position, this.preSelectPosition, f0);
+                return GuiCelestialSelectionHelper.lerpVec2(this.position, this.preSelectPosition, f0);
             }
 
             return new Vector2f(this.position.x + translation.x, this.position.y + translation.y);
@@ -320,7 +200,7 @@ public class GuiCelestialSelection extends GuiScreen {
         }
 
         Vector3f posVec = this.getCelestialBodyPosition(this.selectedBody);
-        return this.lerpVec2(
+        return GuiCelestialSelectionHelper.lerpVec2(
                 this.position,
                 new Vector2f(posVec.x, posVec.y),
                 Math.max(0.0F, Math.min((this.ticksSinceSelection + partialTicks - 18) / 7.5F, 1.0F)));
@@ -344,7 +224,7 @@ public class GuiCelestialSelection extends GuiScreen {
                 if (this.renamingString != null && this.renamingString.length() > 0) {
                     String toBeParsed = this.renamingString.substring(0, this.renamingString.length() - 1);
 
-                    if (this.isValid(toBeParsed)) {
+                    if (GuiCelestialSelectionHelper.isValid(toBeParsed)) {
                         this.renamingString = toBeParsed;
                         //                        this.timeBackspacePressed = System.currentTimeMillis();
                     } else {
@@ -358,12 +238,12 @@ public class GuiCelestialSelection extends GuiScreen {
                     pastestring = "";
                 }
 
-                if (this.isValid(this.renamingString + pastestring)) {
+                if (GuiCelestialSelectionHelper.isValid(this.renamingString + pastestring)) {
                     this.renamingString = this.renamingString + pastestring;
                     this.renamingString = this.renamingString.substring(
                             0, Math.min(this.renamingString.length(), MAX_SPACE_STATION_NAME_LENGTH));
                 }
-            } else if (this.isValid(this.renamingString + keyChar)) {
+            } else if (GuiCelestialSelectionHelper.isValid(this.renamingString + keyChar)) {
                 this.renamingString = this.renamingString + keyChar;
                 this.renamingString = this.renamingString.substring(
                         0, Math.min(this.renamingString.length(), MAX_SPACE_STATION_NAME_LENGTH));
@@ -376,14 +256,6 @@ public class GuiCelestialSelection extends GuiScreen {
         if (keyID == Keyboard.KEY_RETURN) {
             this.teleportToSelectedBody();
         }
-    }
-
-    public boolean isValid(String string) {
-        if (string.length() <= 0) {
-            return false;
-        }
-
-        return ChatAllowedCharacters.isAllowedCharacter(string.charAt(string.length() - 1));
     }
 
     protected boolean canCreateSpaceStation(CelestialBody atBody) {
@@ -492,7 +364,7 @@ public class GuiCelestialSelection extends GuiScreen {
                         }
                         Satellite selectedSatellite = (Satellite) this.selectedBody;
                         Integer mapping = this.spaceStationMap
-                                .get(getSatelliteParentID(selectedSatellite))
+                                .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                 .get(this.selectedStationOwner)
                                 .getStationDimensionID();
                         // No need to check lowercase as selectedStationOwner is taken from keys.
@@ -666,17 +538,17 @@ public class GuiCelestialSelection extends GuiScreen {
                         // this.spaceStationIDs.get(strName.toLowerCase());
                         Satellite selectedSatellite = (Satellite) this.selectedBody;
                         Integer spacestationID = this.spaceStationMap
-                                .get(getSatelliteParentID(selectedSatellite))
+                                .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                 .get(strName)
                                 .getStationDimensionID();
                         if (spacestationID == null)
                             spacestationID = this.spaceStationMap
-                                    .get(getSatelliteParentID(selectedSatellite))
+                                    .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                     .get(strName.toLowerCase())
                                     .getStationDimensionID();
                         if (spacestationID != null) {
                             this.spaceStationMap
-                                    .get(getSatelliteParentID(selectedSatellite))
+                                    .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                     .get(strName)
                                     .setStationName(this.renamingString);
                             //	                    	this.spaceStationNames.put(strName, this.renamingString);
@@ -723,7 +595,7 @@ public class GuiCelestialSelection extends GuiScreen {
 
                 Satellite selectedSatellite = (Satellite) this.selectedBody;
                 int stationListSize = this.spaceStationMap
-                        .get(getSatelliteParentID(selectedSatellite))
+                        .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                         .size();
                 int max = Math.min((this.height / 2) / 14, stationListSize);
 
@@ -753,7 +625,7 @@ public class GuiCelestialSelection extends GuiScreen {
                 }
 
                 Iterator<Map.Entry<String, StationDataGUI>> it = this.spaceStationMap
-                        .get(getSatelliteParentID(selectedSatellite))
+                        .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                         .entrySet()
                         .iterator();
                 int i = 0;
@@ -788,7 +660,7 @@ public class GuiCelestialSelection extends GuiScreen {
             }
         }
 
-        List<CelestialBody> children = this.getChildren(this.selectedParent);
+        List<CelestialBody> children = this.selectedParent.getChildren();
 
         for (int i = 0; i < children.size(); i++) {
             CelestialBody child = children.get(i);
@@ -876,11 +748,13 @@ public class GuiCelestialSelection extends GuiScreen {
                         // Auto select if it's a spacestation and there is only a single entry
                         if (this.selectedBody instanceof Satellite
                                 && this.spaceStationMap
-                                                .get(this.getSatelliteParentID((Satellite) this.selectedBody))
+                                                .get(GuiCelestialSelectionHelper.getSatelliteParentID(
+                                                        (Satellite) this.selectedBody))
                                                 .size()
                                         == 1) {
                             Iterator<Map.Entry<String, StationDataGUI>> it = this.spaceStationMap
-                                    .get(this.getSatelliteParentID((Satellite) this.selectedBody))
+                                    .get(GuiCelestialSelectionHelper.getSatelliteParentID(
+                                            (Satellite) this.selectedBody))
                                     .entrySet()
                                     .iterator();
                             this.selectedStationOwner = it.next().getKey();
@@ -901,7 +775,7 @@ public class GuiCelestialSelection extends GuiScreen {
             mouseDragging = true;
         }
 
-        Object selectedParent = this.selectedParent;
+        IDisplayableBody selectedParent = this.selectedParent;
 
         if (this.selectedBody instanceof IChildBody) {
             selectedParent = ((IChildBody) this.selectedBody).getParentPlanet();
@@ -1105,7 +979,7 @@ public class GuiCelestialSelection extends GuiScreen {
 
         int cBodyTicks = this.celestialBodyTicks.get(cBody);
         float timeScale = cBody instanceof Planet ? 200.0F : 2.0F;
-        float distanceFromCenter = this.getScale(cBody);
+        float distanceFromCenter = GuiCelestialSelectionHelper.getScale(cBody);
         Vector3f cBodyPos = new Vector3f(
                 (float) Math.sin(cBodyTicks / (timeScale * cBody.getRelativeOrbitTime()) + cBody.getPhaseShift())
                         * distanceFromCenter,
@@ -1303,7 +1177,7 @@ public class GuiCelestialSelection extends GuiScreen {
                                                 && GalaxyRegistry.getMoonsForPlanet(
                                                                 ((Moon) this.lastSelectedBody).getParentPlanet())
                                                         .contains(moon)))
-                        || getSiblings(this.selectedBody).contains(moon)) {
+                        || this.selectedBody.getSiblings().contains(moon)) {
                     GL11.glPushMatrix();
                     Matrix4f worldMatrix1 = new Matrix4f(worldMatrix0);
                     Matrix4f.translate(this.getCelestialBodyPosition(moon), worldMatrix1, worldMatrix1);
@@ -1693,7 +1567,7 @@ public class GuiCelestialSelection extends GuiScreen {
                     41,
                     false,
                     false);
-            str = this.getParentName();
+            str = this.selectedParent.getParentName();
             this.fontRendererObj.drawString(
                     str,
                     GuiCelestialSelection.BORDER_WIDTH + GuiCelestialSelection.BORDER_EDGE_WIDTH + 9 - 95 + scale,
@@ -1714,7 +1588,7 @@ public class GuiCelestialSelection extends GuiScreen {
                     17,
                     false,
                     false);
-            str = this.getGrandparentName();
+            str = this.selectedParent.getGrandparentName();
             this.fontRendererObj.drawString(
                     str,
                     GuiCelestialSelection.BORDER_WIDTH + GuiCelestialSelection.BORDER_EDGE_WIDTH + 7 - 95 + scale,
@@ -1722,7 +1596,7 @@ public class GuiCelestialSelection extends GuiScreen {
                     ColorUtil.to32BitColor(255, 120, 120, 120));
             GL11.glColor4f(0.0F, 0.6F, 1.0F, 1);
 
-            List<CelestialBody> children = this.getChildren(this.selectedParent);
+            List<CelestialBody> children = this.selectedParent.getChildren();
 
             for (int i = 0; i < children.size(); i++) {
                 CelestialBody child = children.get(i);
@@ -1809,7 +1683,7 @@ public class GuiCelestialSelection extends GuiScreen {
                 if (this.selectedBody instanceof Satellite) {
                     Satellite selectedSatellite = (Satellite) this.selectedBody;
                     int stationListSize = this.spaceStationMap
-                            .get(getSatelliteParentID(selectedSatellite))
+                            .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                             .size();
 
                     this.mc.renderEngine.bindTexture(GuiCelestialSelection.guiMain1);
@@ -1863,7 +1737,7 @@ public class GuiCelestialSelection extends GuiScreen {
                     GL11.glColor4f(0.0F, 0.6F, 1.0F, 1);
 
                     if (this.spaceStationMap
-                                    .get(getSatelliteParentID(selectedSatellite))
+                                    .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                     .get(this.selectedStationOwner)
                             == null) {
                         str = GCCoreUtil.translate("gui.message.selectSS.name");
@@ -1901,7 +1775,7 @@ public class GuiCelestialSelection extends GuiScreen {
                     }
 
                     Iterator<Map.Entry<String, StationDataGUI>> it = this.spaceStationMap
-                            .get(getSatelliteParentID(selectedSatellite))
+                            .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                             .entrySet()
                             .iterator();
                     int i = 0;
@@ -2069,7 +1943,7 @@ public class GuiCelestialSelection extends GuiScreen {
                                     + canCreateOffset;
 
                             if (next instanceof ItemStack) {
-                                int amount = getAmountInInventory((ItemStack) next);
+                                int amount = GuiCelestialSelectionHelper.getAmountInInventory((ItemStack) next);
                                 RenderHelper.enableGUIStandardItemLighting();
                                 GuiCelestialSelection.itemRender.renderItemAndEffectIntoGUI(
                                         this.fontRendererObj,
@@ -2145,7 +2019,7 @@ public class GuiCelestialSelection extends GuiScreen {
                                 int amount = 0;
 
                                 for (ItemStack stack : items) {
-                                    amount += getAmountInInventory(stack);
+                                    amount += GuiCelestialSelectionHelper.getAmountInInventory(stack);
                                 }
 
                                 RenderHelper.enableGUIStandardItemLighting();
@@ -2637,12 +2511,12 @@ public class GuiCelestialSelection extends GuiScreen {
                                 .getGameProfile()
                                 .getName();
                         this.renamingString = this.spaceStationMap
-                                .get(getSatelliteParentID(selectedSatellite))
+                                .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                 .get(playerName)
                                 .getStationName();
                         if (this.renamingString == null)
                             this.renamingString = this.spaceStationMap
-                                    .get(getSatelliteParentID(selectedSatellite))
+                                    .get(GuiCelestialSelectionHelper.getSatelliteParentID(selectedSatellite))
                                     .get(playerName.toLowerCase())
                                     .getStationName();
                         if (this.renamingString == null) this.renamingString = "";
@@ -2670,31 +2544,6 @@ public class GuiCelestialSelection extends GuiScreen {
         if (!handledSliderPos) {
             this.zoomTooltipPos = 0;
         }
-    }
-
-    protected int getAmountInInventory(ItemStack stack) {
-        int amountInInv = 0;
-
-        for (int x = 0;
-                x
-                        < FMLClientHandler.instance()
-                                .getClientPlayerEntity()
-                                .inventory
-                                .getSizeInventory();
-                x++) {
-            final ItemStack slot = FMLClientHandler.instance()
-                    .getClientPlayerEntity()
-                    .inventory
-                    .getStackInSlot(x);
-
-            if (slot != null) {
-                if (SpaceStationRecipe.checkItemEquals(stack, slot)) {
-                    amountInInv += slot.stackSize;
-                }
-            }
-        }
-
-        return amountInInv;
     }
 
     public int drawSplitString(
@@ -2875,7 +2724,7 @@ public class GuiCelestialSelection extends GuiScreen {
                 Vector3f systemOffset = this.getCelestialBodyPosition(
                         planet.getParentSolarSystem().getMainStar());
 
-                float x = this.getScale(planet);
+                float x = GuiCelestialSelectionHelper.getScale(planet);
                 float y = 0;
 
                 float alpha = 1.0F;
@@ -2948,8 +2797,8 @@ public class GuiCelestialSelection extends GuiScreen {
             for (Moon moon : GalaxyRegistry.getRegisteredMoons().values()) {
                 if ((moon.getParentPlanet() == this.selectedBody && this.selectionCount != 1)
                         || moon == this.selectedBody
-                        || getSiblings(this.selectedBody).contains(moon)) {
-                    float x = this.getScale(moon);
+                        || this.selectedBody.getSiblings().contains(moon)) {
+                    float x = GuiCelestialSelectionHelper.getScale(moon);
                     float y = 0;
 
                     float alpha = 1;
@@ -3012,7 +2861,7 @@ public class GuiCelestialSelection extends GuiScreen {
                                     && this.ticksSinceSelection > 24
                             || satellite == this.selectedBody
                             || this.lastSelectedBody instanceof IChildBody) {
-                        float x = this.getScale(satellite);
+                        float x = GuiCelestialSelectionHelper.getScale(satellite);
                         float y = 0;
 
                         float alpha = 1;
