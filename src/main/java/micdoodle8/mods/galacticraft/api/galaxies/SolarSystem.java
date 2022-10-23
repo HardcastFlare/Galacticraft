@@ -1,10 +1,13 @@
 package micdoodle8.mods.galacticraft.api.galaxies;
 
+import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import micdoodle8.mods.galacticraft.api.vector.Vector3;
 import net.minecraft.util.StatCollector;
 
-public class SolarSystem {
+public class SolarSystem implements IDisplayableBody {
     protected final String systemName;
     protected String unlocalizedName;
     protected Vector3 mapPosition = null;
@@ -15,6 +18,26 @@ public class SolarSystem {
         this.systemName = solarSystem.toLowerCase(Locale.ENGLISH);
         this.unlocalizedName = solarSystem;
         this.unlocalizedGalaxyName = parentGalaxy;
+    }
+
+    public String getParentName() {
+        return getLocalizedName();
+    }
+
+    public String getGrandparentName() {
+        return getLocalizedParentGalaxyName();
+    }
+
+    public List<CelestialBody> getSiblings() {
+        return Lists.newArrayList();
+    }
+
+    public List<CelestialBody> getChildren() {
+        List<CelestialBody> bodyList = Lists.newArrayList();
+        List<Planet> planets = GalaxyRegistry.getPlanetsForSolarSystem(this);
+        bodyList.addAll(planets);
+        Collections.sort(bodyList);
+        return bodyList;
     }
 
     public String getName() {

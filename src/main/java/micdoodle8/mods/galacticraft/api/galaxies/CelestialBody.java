@@ -8,7 +8,7 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.WorldProvider;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
-public abstract class CelestialBody implements Comparable<CelestialBody> {
+public abstract class CelestialBody implements Comparable<CelestialBody>, IDisplayableBody {
     protected final String bodyName;
     protected String unlocalizedName;
 
