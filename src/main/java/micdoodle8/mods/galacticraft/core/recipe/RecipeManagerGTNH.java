@@ -4,6 +4,7 @@ import appeng.api.AEApi;
 import appeng.api.util.AEColor;
 import cpw.mods.fml.common.registry.GameRegistry;
 import gregtech.api.GregTech_API;
+import gregtech.api.enums.GT_Values;
 import gregtech.api.enums.ItemList;
 import gregtech.api.enums.Materials;
 import gregtech.api.enums.OrePrefixes;
@@ -26,7 +27,9 @@ import micdoodle8.mods.galacticraft.core.blocks.GCBlocks;
 import micdoodle8.mods.galacticraft.core.items.GCItems;
 import micdoodle8.mods.galacticraft.core.items.ItemBasic;
 import micdoodle8.mods.galacticraft.core.items.ItemParaChute;
+import micdoodle8.mods.galacticraft.core.recipe.adders.ShapedRecipes;
 import micdoodle8.mods.galacticraft.core.util.*;
+import micdoodle8.mods.galacticraft.planets.asteroids.items.AsteroidsItems;
 import micdoodle8.mods.galacticraft.planets.mars.items.MarsItems;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
@@ -35,571 +38,284 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.CraftingManager;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
+import static gregtech.api.util.GT_ModHandler.getModItem;
+
 public class RecipeManagerGTNH {
     public static ArrayList<ItemStack> aluminumIngots = new ArrayList<>();
 
-    private static ItemStack compressedAl = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Aluminium, 1);
-    private static ItemStack compressedIron = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Iron, 1);
-    private static ItemStack compressedSteel = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Steel, 1);
-    private static ItemStack compressedBronze = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Bronze, 1);
-    private static ItemStack compressedTin = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Tin, 1);
-    private static ItemStack compressedCopper = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Copper, 1);
-    private static ItemStack compressedTi = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Titanium, 1);
-    // TODO? Not oredicted in dev, results in missing item in recipes
-    private static ItemStack compressedDesh = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.Desh, 1);
-    private static ItemStack compressedMeteoricIron = GT_OreDictUnificator.get(OrePrefixes.compressed, Materials.MeteoricIron, 1);
-
-    private static ItemStack solarModuleSingle = new ItemStack(GCItems.basicItem, 1, 0);
-    private static ItemStack solarModuleFull = new ItemStack(GCItems.basicItem, 1, 1);
-    private static ItemStack frequencyModule = new ItemStack(GCItems.basicItem, 1, 19);
-
-    private static ItemStack bWafer = GT_OreDictUnificator.get(OrePrefixes.wafer, Materials.Basic, 1);
-    private static ItemStack advWafer = GT_OreDictUnificator.get(OrePrefixes.wafer, Materials.Advanced, 1);
-    private static ItemStack gcAlWire = new ItemStack(GCBlocks.aluminumWire, 1, 0);
-    private static ItemStack gcHeavyAlWire = new ItemStack(GCBlocks.aluminumWire, 1, 1);
-    private static ItemStack oxygenPipe = new ItemStack(GCBlocks.oxygenPipe, 1, 0);
-    private static ItemStack airVent = new ItemStack(GCItems.oxygenVent, 1, 0);
-    private static ItemStack heavyPlating = new ItemStack(GCItems.heavyPlatingTier1, 1, 0);
-    private static ItemStack heavyDutyPlate = GT_ModHandler.getModItem("GalacticraftMars", "item.itemBasicAsteroids", 1, 0);
-    private static ItemStack tinDecoBlock = new ItemStack(GCBlocks.basicBlock, 1, 4);
-    private static ItemStack tinDecoBlock2 = new ItemStack(GCBlocks.basicBlock, 1, 3);
-    private static ItemStack sensorLens = new ItemStack(GCItems.sensorLens, 1, 0);
-    private static ItemStack steelPole = new ItemStack(GCItems.flagPole, 1, 0);
-
-    private static ItemStack advAlloyPlate = GT_OreDictUnificator.get(OrePrefixes.plateAlloy, Materials.Advanced, 1);
-    // TODO probably fix
-    private static ItemStack compressedDualTitanium = GT_ModHandler.getModItem("dreamcraft", "item.TitaniumDualCompressedPlates", 1, 0);
-    private static ItemStack screwMeteor = GT_OreDictUnificator.get(OrePrefixes.screw, Materials.MeteoricSteel, 1);
-    private static ItemStack screwSteel = GT_OreDictUnificator.get(OrePrefixes.screw, Materials.Steel, 1);
-    private static ItemStack screwSSteel = GT_OreDictUnificator.get(OrePrefixes.screw, Materials.StainlessSteel, 1);
-    private static ItemStack boltSSteel = GT_OreDictUnificator.get(OrePrefixes.bolt, Materials.StainlessSteel, 1);
-    private static ItemStack boltTSteel = GT_OreDictUnificator.get(OrePrefixes.bolt, Materials.TungstenSteel, 1);
-    private static ItemStack boltDesh = GT_OreDictUnificator.get(OrePrefixes.bolt, Materials.Desh, 1);
-    // TODO probably fix
-    private static ItemStack plateDesh = GT_ModHandler.getModItem("GalacticraftMars", "item.null", 1, 5);
-    private static ItemStack ringDesh = GT_OreDictUnificator.get(OrePrefixes.ring, Materials.Desh, 1);
-    private static ItemStack ringRedAlloy = GT_OreDictUnificator.get(OrePrefixes.ring, Materials.RedAlloy, 1);
-    private static ItemStack alFoil = GT_OreDictUnificator.get(OrePrefixes.foil, Materials.Aluminium, 1);
-    private static ItemStack tripleTrinium = GT_OreDictUnificator.get(OrePrefixes.plateTriple, Materials.Trinium, 1);
-
-    private static ItemStack motorLV = ItemList.Electric_Motor_LV.get(1);
-    private static ItemStack motorHV = ItemList.Electric_Motor_HV.get(1);
-    private static ItemStack conveyorMV = ItemList.Conveyor_Module_MV.get(1);
-    private static ItemStack conveyorHV = ItemList.Conveyor_Module_HV.get(1);
-    private static ItemStack pistonHV = ItemList.Electric_Piston_HV.get(1);
-    private static ItemStack solarPanel = ItemList.Cover_SolarPanel.get(1);
-    private static ItemStack pumpLV = ItemList.Pump_LV.get(1);
-    private static ItemStack pumpHV = ItemList.Pump_HV.get(1);
-    private static ItemStack sensorLV = ItemList.Sensor_LV.get(1);
-    private static ItemStack sensorHV = ItemList.Sensor_HV.get(1);
-    private static ItemStack emitterHV = ItemList.Emitter_HV.get(1);
-    private static ItemStack steelRotor = GT_OreDictUnificator.get(OrePrefixes.rotor, Materials.Steel, 1);
-    private static ItemStack rubberSheet = GT_ModHandler.getModItem("IC2", "blockRubber", 1, 0);
-    
-    private static ItemStack circuitAdv = GT_OreDictUnificator.get(OrePrefixes.circuit, Materials.Advanced, 1);
-    private static ItemStack circuitData = GT_OreDictUnificator.get(OrePrefixes.circuit, Materials.Data, 1);
-
-    private static ItemStack cellEmpty = GT_OreDictUnificator.get(OrePrefixes.cell, Materials.Empty, 1);
-    private static ItemStack largeCellSteel = ItemList.Large_Fluid_Cell_Steel.get(1);
-    private static ItemStack largeCellTungSteel = ItemList.Large_Fluid_Cell_TungstenSteel.get(1);
-    private static ItemStack largeCellIridium = ItemList.Large_Fluid_Cell_Iridium.get(1);
-    private static ItemStack largeCellOsmium = ItemList.Large_Fluid_Cell_Osmium.get(1);
-
-    private static ItemStack pipeMediumSteel = GT_OreDictUnificator.get(OrePrefixes.pipeMedium, Materials.Steel, 1);
-    private static ItemStack pipeMediumBrass = GT_OreDictUnificator.get(OrePrefixes.pipeMedium, Materials.Brass, 1);
-
-    private static ItemStack casingSolidSteel = ItemList.Casing_SolidSteel.get(1);
-
-    private static ItemStack chestBufferHV = ItemList.Automation_ChestBuffer_HV.get(1);
-
-    private static ItemStack computerMonitorCover = ItemList.Cover_Screen.get(1);
-
-    private static ItemStack ReinforcedGlass = GT_OreDictUnificator.get(OrePrefixes.glass, Materials.Reinforced, 1);
-    private static ItemStack Stick = GT_OreDictUnificator.get(OrePrefixes.stick, Materials.Wood, 1);
-    private static ItemStack Wool = GT_OreDictUnificator.get(OrePrefixes.blockWool, 1);
-
-    private static ItemStack wireRedAlloy1x = GT_OreDictUnificator.get(OrePrefixes.wireGt01, Materials.RedAlloy, 1);
-
-    private static ItemStack cableCopper1x = GT_OreDictUnificator.get(OrePrefixes.cableGt01, Materials.AnyCopper, 1);
-    private static ItemStack cableAlu2x = GT_OreDictUnificator.get(OrePrefixes.cableGt02, Materials.Aluminium, 1);
-    private static ItemStack cableGold2x = GT_OreDictUnificator.get(OrePrefixes.cableGt02, Materials.Gold, 1);
-
-    private static ItemStack lensDiamond = GT_OreDictUnificator.get(OrePrefixes.lens, Materials.Diamond, 1);
-    private static ItemStack lensReinfGlass = GT_OreDictUnificator.get(OrePrefixes.lens, Materials.ReinforceGlass, 1);
-
-    private static String ironBars = "iron_bars";
-    private static String string = "string";
-    private static String hHammer = "craftingToolHardHammer";
-    private static String wrench = "craftingToolWrench";
-    private static String file = "craftingToolFile";
-    private static String screwdriver = "craftingToolScrewdriver";
-
-    private static ItemStack canisterEmpty = new ItemStack(GCItems.oilCanister, 1, GCItems.oilCanister.getMaxDamage());
-    private static ItemStack fuelCanisterFilled = new ItemStack(GCItems.fuelCanister, 1, 1);
-
-    private static ItemStack ironBlock = GT_OreDictUnificator.get(OrePrefixes.block, Materials.Iron, 1);
-    private static ItemStack steelBlock = GT_OreDictUnificator.get(OrePrefixes.block, Materials.Steel, 1);
-
-    private static ItemStack stone = GT_OreDictUnificator.get(OrePrefixes.stone, 1);
-    private static ItemStack hopper = GT_OreDictUnificator.get(OrePrefixes.block, "Hopper", 1);
+    static ItemStack oxygenPipe = new ItemStack(GCBlocks.oxygenPipe, 1, 0);
+    static ItemStack solarPanel = ItemList.Cover_SolarPanel.get(1);
 
     // Ported from GTNH zenscript recipes
     public static void loadRecipes() {
+        new ShapedRecipes().run();
 
-        addShapedRecipes();
+        addMigratedRecipes();
 
-        if (CompatibilityManager.isBCraftTransportLoaded()) {
-            RecipeManagerGTNH.addBuildCraftCraftingRecipes();
-        }
-
-        if (CompatibilityManager.isIc2Loaded()) {
-            RecipeManagerGTNH.addIndustrialCraft2Recipes();
-        }
-
-        if (CompatibilityManager.isAppEngLoaded()) {
-            RecipeManagerGTNH.addAppEngRecipes();
-        }
-
-        RecipeManagerGTNH.addUniversalRecipes();
-
-        RecipeManagerGTNH.addExNihiloRecipes();
-    }
-
-    /**
-     * Copied from GTNH core mod
-     * Utility fonction copied from GT++ to strip nulls from the array.
-     * @param v The object array to process.
-     * @return An object array with null elements removed
-     */
-    public static Object[] removeNulls(final Object[] v) {
-        List<Object> list = new ArrayList<Object>(Arrays.asList(v));
-        list.removeAll(Collections.singleton(null));
-        return list.toArray(new Object[list.size()]);
-    }
-
-    /**
-     * Copied from GTNH core mod.
-     * Code strongly inspired from what did alkalus in GT++.
-     * @param inputs Object array that should contain only the 9 object representing the items in the crafting grid.
-     *               Acceptable types are Item, Block, ItemStack, ItemData and null (for empty slots).
-     * @param aOutputStack The result of the crafting recipe
-     * @return a boolean
-     */
-    static boolean addShapedRecipe(ItemStack aOutputStack, Object[] inputs) {
-        Object[] slots = new Object[9];
-        StringBuilder fullString = new StringBuilder();
-        String slotMappings = "abcdefghi";
-        try {
-            for (int i = 0; i < 9; i++) {
-                Object o = inputs[i];
-                if (o instanceof ItemStack) {
-                    final ItemStack itemStack = ((ItemStack) o).copy();
-                    itemStack.stackSize = 1;
-                    slots[i] = itemStack.copy();
-                    fullString.append(slotMappings.charAt(i));
-                } else if (o instanceof Item) {
-                    final ItemStack itemStack = new ItemStack((Item) o, 1);
-                    slots[i] = itemStack.copy();
-                    fullString.append(slotMappings.charAt(i));
-                } else if (o instanceof Block) {
-                    final ItemStack itemStack = new ItemStack((Block) o, 1);
-                    slots[i] = itemStack.copy();
-                    fullString.append(slotMappings.charAt(i));
-                } else if (o instanceof String) {
-                    slots[i] = o;
-                    fullString.append(slotMappings.charAt(i));
-                } else if (o instanceof ItemData) {
-                    ItemData data = (ItemData) o;
-                    ItemStack itemStack = GT_OreDictUnificator.get(data.mPrefix, data.mMaterial.mMaterial, 1);
-                    if (itemStack == null) {
-                        throw new NullPointerException("bad item passed in the recipe");
-                    } else {
-                        slots[i] = itemStack;
-                        fullString.append(slotMappings.charAt(i));
-                    }
-
-                } else if (o == null) {
-                    slots[i] = null;
-                    fullString.append(" ");
-                } else {
-                    slots[i] = null;
-                    throw new NullPointerException("bad recipe generated");
-                }
-            }
-            String aRow1 = fullString.substring(0, 3);
-            String aRow2 = fullString.substring(3, 6);
-            String aRow3 = fullString.substring(6, 9);
-            String[] recipeRows = new String[] {aRow1, aRow2, aRow3};
-            Object[] recipeInputs = new Object[19];
-            recipeInputs[0] = recipeRows;
-            int aIndex = 0;
-            for (int u = 1; u < 20; u += 2) {
-                if (aIndex == 9) {
-                    break;
-                }
-                if (fullString.charAt(aIndex) != (' ')) {
-                    recipeInputs[u] = fullString.charAt(aIndex);
-                    recipeInputs[u + 1] = slots[aIndex];
-                }
-                aIndex++;
-            }
-            recipeInputs = removeNulls(recipeInputs);
-            ShapedOreRecipe aRecipe = new ShapedOreRecipe(aOutputStack, recipeInputs);
-            GameRegistry.addRecipe(aRecipe);
-        } catch (Exception e) {
-            GCLog.severe("a recipe went wrong");
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
-    private static void addShapedRecipes() {
-        // --- Rocket Launch Pad
-        addShapedRecipe(new ItemStack(GCBlocks.landingPad, 3, 0), new Object[] {
-            compressedIron, compressedIron, compressedIron,
-            advAlloyPlate, advAlloyPlate, advAlloyPlate,
-            ironBlock, ironBlock, ironBlock
-        });
-
-        // --- Buggy Fueling Pad
-        addShapedRecipe(new ItemStack(GCBlocks.landingPad, 3, 1), new Object[] {
-            compressedSteel, compressedSteel, compressedSteel,
-            advAlloyPlate, advAlloyPlate, advAlloyPlate,
-            steelBlock, steelBlock, steelBlock
-        });
-
-        // --- Oxygen Collector
-        addShapedRecipe(new ItemStack(GCBlocks.oxygenCollector, 1, 0), new Object[] {
-            compressedAl, GCItems.oxygenConcentrator, compressedAl,
-            airVent, GCItems.oxygenFan, motorHV,
-            compressedSteel, cableAlu2x, compressedSteel
-        });
-
-        // --- Oxygen Compressor
-        addShapedRecipe(new ItemStack(GCBlocks.oxygenCompressor, 1, 0), new Object[] {
-            compressedAl, GCItems.oxygenConcentrator, compressedAl,
-            pistonHV, canisterEmpty, motorHV,
-            compressedSteel, compressedBronze, compressedSteel
-        });
-
-        // --- Oxygen Decompressor
-        addShapedRecipe(new ItemStack(GCBlocks.oxygenCompressor, 1, 4), new Object[] {
-            compressedAl, GCItems.oxygenConcentrator, compressedAl,
-            motorHV, canisterEmpty, GCItems.oxygenFan,
-            compressedSteel, compressedBronze, compressedSteel
-        });
-
-        // --- Oxygen Storage Module
-        addShapedRecipe(new ItemStack(GCBlocks.machineBase2, 1, 8), new Object[] {
-            compressedSteel, GCItems.oxTankUltraHeavy, compressedSteel,
-            GCItems.oxTankUltraHeavy, casingSolidSteel, GCItems.oxTankUltraHeavy,
-            compressedSteel, GCItems.oxTankUltraHeavy, compressedSteel
-        });
-
-        // --- Oxygen Bubble Distributor
-        addShapedRecipe(new ItemStack(GCBlocks.oxygenDistributor, 1, 0), new Object[] {
-            compressedAl, GCItems.oxygenFan, compressedAl,
-            airVent, motorHV, airVent,
-            compressedSteel, GCItems.oxygenFan, compressedSteel
-        });
-
-        // --- Oxygen Sealer
-        addShapedRecipe(new ItemStack(GCBlocks.oxygenSealer, 1, 0), new Object[] {
-            compressedAl, airVent, compressedAl,
-            airVent, GCBlocks.oxygenDistributor, airVent,
-            compressedDesh, GCBlocks.oxygenDetector, compressedDesh
-        });
-
-        // --- Oxygen Detector
-        addShapedRecipe(new ItemStack(GCBlocks.oxygenDetector, 1, 0), new Object[] {
-            compressedDesh, compressedSteel, compressedDesh,
-            airVent, sensorHV, airVent,
-            compressedAl, wireRedAlloy1x, compressedAl
-        });
-
-        // --- Fuel Loader
-        addShapedRecipe(new ItemStack(GCBlocks.fuelLoader, 1, 0), new Object[] {
-            compressedSteel, bWafer, compressedSteel,
-            pumpHV, largeCellSteel, motorHV,
-            compressedAl, pipeMediumSteel, compressedAl
-        });
-
-        // --- Cargo Loader
-        // TODO: fix?
-        addShapedRecipe(new ItemStack(GCBlocks.cargoLoader, 1, 0), new Object[] {
-            compressedAl, hopper, compressedAl,
-            conveyorHV, chestBufferHV, conveyorHV,
-            compressedDesh, pipeMediumBrass, compressedDesh
-        });
-
-        // --- Cargo Unloader
-        addShapedRecipe(new ItemStack(GCBlocks.cargoLoader, 1, 4), new Object[] {
-            compressedDesh, pipeMediumBrass, compressedDesh,
-            conveyorHV, chestBufferHV, conveyorHV,
-            compressedAl, hopper, compressedAl
-        });
-
-        // --- Nasa Workbench --- Added by core mod?
-        //recipes.addShaped(<GalacticraftCore:tile.rocketWorkbench>, [
-        //[<gregtech:gt.metaitem.01:32652>, <gregtech:gt.metaitem.01:32740>, <gregtech:gt.metaitem.01:32652>],
-        //[<ore:waferAdvanced>, <ore:circuitElite>, <ore:waferAdvanced>],
-        //[<ore:itemCasingStainlessSteel>, <gregtech:gt.blockcasings:3>, <ore:itemCasingStainlessSteel>]]);
-
-        // --- Tin Decoration Block
-        addShapedRecipe(tinDecoBlock, new Object[] {
-            hHammer, compressedTin, null,
-            compressedTin, stone, compressedTin,
-            null, compressedTin, wrench
-        });
-        addShapedRecipe(tinDecoBlock2, new Object[] {
-            null, compressedTin, hHammer,
-            compressedTin, stone, compressedTin,
-            wrench, compressedTin, null
-        });
-        
-        // --- Air Lock Frame
-        addShapedRecipe(new ItemStack(GCBlocks.airLockFrame, 2, 0), new Object[] {
-            compressedDesh, screwSSteel, compressedDesh,
-            airVent, screwdriver, airVent,
-            compressedAl, screwSSteel, compressedAl
-        });
-
-        // --- Air Lock Controller
-        addShapedRecipe(new ItemStack(GCBlocks.airLockFrame, 1, 1), new Object[] {
-            compressedDesh, GCItems.oxygenConcentrator, compressedDesh,
-            airVent, computerMonitorCover, airVent,
-            advWafer, wireRedAlloy1x, advWafer
-        });
-        
-        // --- Sealable Oxygen Pipe
-        addShapedRecipe(new ItemStack(GCBlocks.sealableBlock, 1, 1), new Object[] {
-                hHammer, GCBlocks.oxygenPipe, null,
-            GCBlocks.oxygenPipe, tinDecoBlock, GCBlocks.oxygenPipe,
-            null, GCBlocks.oxygenPipe, file
-        });
-
-        // --- Sealable ME Wire
-        // TODO
-//        addShapedRecipe(new ItemStack(GCBlocks.sealableBlock, 1, 13), new Object[] {
-//                hHammer, <appliedenergistics2:item.ItemMultiPart:11>, null,
-//            <appliedenergistics2:item.ItemMultiPart:11>, tinDecoBlock, <appliedenergistics2:item.ItemMultiPart:11>,
-//            null, <appliedenergistics2:item.ItemMultiPart:11>, file
-//        });
-
-        // --- Sealable Aluminium Wire
-        addShapedRecipe(new ItemStack(GCBlocks.sealableBlock, 1, 14), new Object[] {
-            hHammer, gcAlWire, null,
-            gcAlWire, tinDecoBlock, gcAlWire,
-            null, gcAlWire, file
-        });
-        
-
-        // --- Sealable heavy Aluminium Wire
-        addShapedRecipe(new ItemStack(GCBlocks.sealableBlock, 1, 15), new Object[] {
-            hHammer, gcHeavyAlWire, null,
-            gcHeavyAlWire, tinDecoBlock, gcHeavyAlWire,
-            null, gcHeavyAlWire, file
-        });
-
-        // TODO
-        // --- Sealable Stone Kinesis Pipe
-//        addShapedRecipe(new ItemStack(GCBlocks.sealableBlock:11>, 1, 0), new Object[] {
-//            hHammer, <BuildCraft|Transport:item.buildcraftPipe.pipepowerstone>, null,
-//            <BuildCraft|Transport:item.buildcraftPipe.pipepowerstone>, tinDecoBlock, <BuildCraft|Transport:item.buildcraftPipe.pipepowerstone>,
-//            null, <BuildCraft|Transport:item.buildcraftPipe.pipepowerstone>, file
-//        });
+//        if (CompatibilityManager.isBCraftTransportLoaded()) {
+//            RecipeManagerGTNH.addBuildCraftCraftingRecipes();
+//        }
 //
-//        // --- Sealable Gold Kinesis Pipe
-//        addShapedRecipe(new ItemStack(GCBlocks.sealableBlock:12>, 1, 0), new Object[] {
-//                hHammer, <BuildCraft|Transport:item.buildcraftPipe.pipepowergold>, null,
-//            <BuildCraft|Transport:item.buildcraftPipe.pipepowergold>, tinDecoBlock, <BuildCraft|Transport:item.buildcraftPipe.pipepowergold>,
-//            null, <BuildCraft|Transport:item.buildcraftPipe.pipepowergold>, file
-//        });
+//        if (CompatibilityManager.isIc2Loaded()) {
+//            RecipeManagerGTNH.addIndustrialCraft2Recipes();
+//        }
+//
+//        if (CompatibilityManager.isAppEngLoaded()) {
+//            RecipeManagerGTNH.addAppEngRecipes();
+//        }
+//
+//        RecipeManagerGTNH.addUniversalRecipes();
+//
+//        RecipeManagerGTNH.addExNihiloRecipes();
+    }
 
-        // TODO
-        // --- Aluminium Wire
-//        recipes.addShapeless(gcAlWire, [<ore:cableGt01Aluminium>]);
+    // TODO: split into new adders by recipe type, finish migrating non-assembler recipes
+    // Migrated with https://github.com/boubou19/script-migrator
+    //  much of this could use native variables instead of getModItem
+    static void addMigratedRecipes() {
+        GT_Values.RA.addAssemblerRecipe(
+            new ItemStack[]{
+                getModItem("harvestcraft", "wovencottonItem", 8),
+                getModItem("gregtech", "gt.metaitem.01", 8, 29019),
+                getModItem("dreamcraft", "item.MeteoricIronString", 8),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 1)
+            },
+            FluidRegistry.getFluidStack("molten.silicone", 144),
+            getModItem("GalacticraftMars", "item.itemBasicAsteroids", 1, 7),
+            300,
+            480
+        );
 
-        // --- Heavy Aluminium Wire
-        addShapedRecipe(new ItemStack(GCBlocks.aluminumWire, 3, 1), new Object[] {
-            compressedAl, compressedAl, compressedAl,
-            gcAlWire, gcAlWire, gcAlWire,
-            compressedAl, compressedAl, compressedAl
-        });
+        GT_Values.RA.addAssemblerRecipe(
+            new ItemStack[]{
+                getModItem("gregtech", "gt.metaitem.01", 1, 23010),
+                getModItem("minecraft", "glowstone_dust", 1),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 2),
+                null
+            },
+            GT_Values.NF,
+            getModItem("GalacticraftCore", "tile.glowstoneTorch", 1),
+            100,
+            16
+        );
         
-        // --- Basic Solar Panel
-        addShapedRecipe(new ItemStack(GCBlocks.solarPanel, 1, 0), new Object[] {
-            compressedAl, solarModuleFull, compressedAl,
-            gcAlWire, steelPole, gcAlWire,
-            compressedSteel, bWafer, compressedSteel
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftCore", "item.basicItem", 4, 9),
+                getModItem("gregtech", "gt.metaitem.01", 4, 28305)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftCore", "item.oilCanisterPartial", 1, 1001),
+            200,
+            64
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                oxygenPipe,
+                getModItem("gregtech", "gt.metaitem.01", 4, 28035)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftMars", "tile.hydrogenPipe", 1),
+            400,
+            16
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.itemBasicAsteroids", 5, 7),
+                getModItem("dreamcraft", "item.MeteoricIronString", 5),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 5)
+			},
+            FluidRegistry.getFluidStack("molten.silicone", 720),
+            getModItem("GalacticraftMars", "item.thermalPadding", 1),
+            750,
+            1024
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.thermalPadding", 1),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 1)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftMars", "item.itemBasicAsteroids", 5, 7),
+            180,
+            256
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.itemBasicAsteroids", 8, 7),
+                getModItem("dreamcraft", "item.MeteoricIronString", 8),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 8)
+			},
+            FluidRegistry.getFluidStack("molten.silicone", 1152),
+            getModItem("GalacticraftMars", "item.thermalPadding", 1, 1),
+            1200,
+            1024
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.thermalPadding", 1, 1),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 1)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftMars", "item.itemBasicAsteroids", 8, 7),
+            300,
+            256
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.itemBasicAsteroids", 7, 7),
+                getModItem("dreamcraft", "item.MeteoricIronString", 7),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 7)
+			},
+            FluidRegistry.getFluidStack("molten.silicone", 1008),
+            getModItem("GalacticraftMars", "item.thermalPadding", 1, 2),
+            1050,
+            1024
+        );
+        
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.thermalPadding", 1, 2),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 1)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftMars", "item.itemBasicAsteroids", 7, 7),
+            260,
+            256
+        );
 
-        // --- Advanced Solar Panel
-        addShapedRecipe(new ItemStack(GCBlocks.solarPanel, 1, 4), new Object[] {
-            compressedAl, solarModuleFull, compressedAl,
-            gcHeavyAlWire, steelPole, gcHeavyAlWire,
-            motorLV, advWafer, sensorLV
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.itemBasicAsteroids", 4, 7),
+                getModItem("dreamcraft", "item.MeteoricIronString", 4),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 4)
+			},
+            FluidRegistry.getFluidStack("molten.silicone", 576),
+            getModItem("GalacticraftMars", "item.thermalPadding", 1, 3),
+            600,
+            1024
+        );
 
-        // --- Full Solar Panel
-        addShapedRecipe(solarModuleFull, new Object[] {
-            solarModuleSingle, solarModuleSingle, solarModuleSingle,
-            gcAlWire, bWafer, gcAlWire,
-            solarModuleSingle, solarModuleSingle, solarModuleSingle
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftMars", "item.thermalPadding", 1, 3),
+                getModItem("gregtech", "gt.integrated_circuit", 0, 1)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftMars", "item.itemBasicAsteroids", 4, 7),
+            150,
+            256
+        );
 
-        // --- Energy Storage Module
-        addShapedRecipe(new ItemStack(GCBlocks.machineTiered, 1, 0), new Object[] {
-            compressedSteel, Ic2Items.chargingREBattery, compressedSteel,
-            cableCopper1x, ItemList.Hull_MV.get(1), cableCopper1x,
-            bWafer, Ic2Items.chargingREBattery, bWafer
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("IC2", "itemArmorHazmatHelmet", 1),
+                getModItem("dreamcraft", "item.ReinforcedGlassPlate", 16)
+			},
+            FluidRegistry.getFluidStack("glue", 144),
+            getModItem("GalacticraftCore", "item.oxygenMask", 1),
+            400,
+            120
+        );
 
-        // --- Energy Storage Cluster
-        addShapedRecipe(new ItemStack(GCBlocks.machineTiered, 1, 8), new Object[] {
-            compressedTi, Ic2Items.chargingAdvBattery, compressedTi,
-            cableGold2x, ItemList.Hull_HV.get(1), cableGold2x,
-            advWafer, Ic2Items.chargingAdvBattery, advWafer
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("IC2", "itemArmorHazmatHelmet", 1),
+                getModItem("dreamcraft", "item.ReinforcedGlassPlate", 16)
+			},
+            FluidRegistry.getFluidStack("refinedglue", 144),
+            getModItem("GalacticraftCore", "item.oxygenMask", 1),
+            400,
+            120
+        );
 
-        // --- Spin Thruster
-        addShapedRecipe(new ItemStack(GCBlocks.spinThruster, 1, 0), new Object[] {
-            compressedTi, compressedTi, compressedTi,
-            fuelCanisterFilled, advWafer, fuelCanisterFilled,
-            GCItems.rocketEngine, heavyPlating, GCItems.rocketEngine
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("IC2", "itemArmorHazmatHelmet", 1),
+                getModItem("dreamcraft", "item.ReinforcedGlassPlate", 16)
+			},
+            FluidRegistry.getFluidStack("molten.rubber", 72),
+            getModItem("GalacticraftCore", "item.oxygenMask", 1),
+            400,
+            120
+        );
 
-        // --- Display Screen
-        addShapedRecipe(new ItemStack(GCBlocks.screen, 1, 0), new Object[] {
-            compressedSteel, solarPanel, compressedSteel,
-            bWafer, computerMonitorCover, bWafer,
-            compressedSteel, compressedSteel, compressedSteel
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                solarPanel,
+                getModItem("GalacticraftCore", "item.basicItem", 1, 9)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftCore", "item.basicItem", 1),
+            200,
+            120
+        );
 
-        // --- Telemetry Unit
-        addShapedRecipe(new ItemStack(GCBlocks.telemetry, 1, 0), new Object[] {
-            frequencyModule, compressedTin, emitterHV,
-            bWafer, compressedTin, bWafer,
-            compressedTin, compressedCopper, compressedTin
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("harvestcraft", "wovencottonItem", 2),
+                getModItem("gregtech", "gt.metaitem.01", 2, 23874)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftCore", "item.canvas", 1),
+            300,
+            480
+        );
 
-        // TODO
-        // --- Arc Lamp
-//        addShapedRecipe(new ItemStack(<GalacticraftCore:tile.arclamp>, 1, 0), new Object[] {
-//            deshPlate,deshPlate,deshPlate,
-//            deshPlate, <GalaxySpace:ceresglowstone>, <ProjRed|Illumination:projectred.illumination.lamp:16>,
-//            deshPlate, deshPlate, deshPlate
-//        });
-//        addShapedRecipe(new ItemStack(<GalacticraftCore:tile.arclamp>, 1, 0), new Object[] {
-//            deshPlate,deshPlate,deshPlate,
-//            deshPlate, <GalaxySpace:ioglowstone>, <ProjRed|Illumination:projectred.illumination.lamp:16>,
-//            deshPlate, deshPlate, deshPlate
-//        });
-//        addShapedRecipe(new ItemStack(<GalacticraftCore:tile.arclamp>, 1, 0), new Object[] {
-//            deshPlate,deshPlate,deshPlate,
-//            deshPlate, <GalaxySpace:enceladusglowstone>, <ProjRed|Illumination:projectred.illumination.lamp:16>,
-//            deshPlate, deshPlate, deshPlate
-//        });
-//        addShapedRecipe(new ItemStack(<GalacticraftCore:tile.arclamp>, 1, 0), new Object[] {
-//            deshPlate,deshPlate,deshPlate,
-//            deshPlate, <GalaxySpace:proteusglowstone>, <ProjRed|Illumination:projectred.illumination.lamp:16>,
-//            deshPlate, deshPlate, deshPlate
-//        });
-//        addShapedRecipe(new ItemStack(<GalacticraftCore:tile.arclamp>, 1, 0), new Object[] {
-//            deshPlate,deshPlate,deshPlate,
-//            deshPlate, <GalaxySpace:plutoglowstone>, <ProjRed|Illumination:projectred.illumination.lamp:16>,
-//            deshPlate, deshPlate, deshPlate
-//        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("GalacticraftCore", "item.canvas", 2),
+                getModItem("gregtech", "gt.metaitem.02", 3, 19305)
+			},
+            GT_Values.NF,
+            getModItem("GalacticraftCore", "item.parachute", 1),
+            300,
+            480
+        );
 
-        // --- Oxygen Gear
-        addShapedRecipe(new ItemStack(GCItems.oxygenGear, 1, 0), new Object[] {
-            GCBlocks.oxygenPipe, GCBlocks.oxygenPipe, GCBlocks.oxygenPipe,
-            pumpHV, GCItems.oxygenConcentrator, pumpHV,
-            GCBlocks.oxygenPipe, motorHV, GCBlocks.oxygenPipe
-        });
+        GT_Values.RA.addAssemblerRecipe(
+			new ItemStack[]{
+                getModItem("gregtech", "gt.metaitem.01", 4, 32612),
+                getModItem("gregtech", "gt.blockmachines", 4, 5135),
+                getModItem("GalacticraftCore", "item.oilCanisterPartial", 1, 1001),
+                null
+            },
+            GT_Values.NF,
+            getModItem("GalacticraftMars", "item.null", 1, 6),
+            200,
+            480
+        );
 
-        // --- Light Oxygen Tank
-        addShapedRecipe(new ItemStack(GCItems.oxTankLight, 1, GCItems.oxTankLight.getMaxDamage()), new Object[] {
-            compressedAl, GCBlocks.oxygenPipe, compressedAl,
-            compressedAl, cellEmpty, compressedAl,
-            compressedAl, compressedAl, compressedAl
-        });
-        addShapedRecipe(new ItemStack(GCItems.oxTankLight, 1, GCItems.oxTankLight.getMaxDamage()), new Object[] {
-            compressedAl, GCBlocks.oxygenPipe, compressedAl,
-            compressedAl, Ic2Items.FluidCell, compressedAl,
-            compressedAl, compressedAl, compressedAl
-        });
-
-        // --- Light Oxygen Tank - Original GC recipes
-        RecipeUtil.addRecipe(new ItemStack(GCItems.oxTankLight, 1, GCItems.oxTankLight.getMaxDamage()), new Object[] {
-                "YZY",
-                "YXY",
-                "YYY",
-                'X',
-                new ItemStack(GCItems.canister, 1, 0),
-                'Y',
-                "compressedAluminum",
-                'Z',
-                GCBlocks.oxygenPipe
-        });
-        RecipeUtil.addRecipe(new ItemStack(GCItems.oxTankLight, 1, GCItems.oxTankLight.getMaxDamage()), new Object[] {
-                "YZY",
-                "YXY",
-                "YYY",
-                'X',
-                new ItemStack(GCItems.canister, 1, 1),
-                'Y',
-                "compressedAluminum",
-                'Z',
-                GCBlocks.oxygenPipe
-        });
-
-        // --- Medium Oxygen Tank
-        addShapedRecipe(new ItemStack(GCItems.oxTankMedium, 1, GCItems.oxTankMedium.getMaxDamage()), new Object[] {
-            compressedMeteoricIron, GCBlocks.oxygenPipe, compressedMeteoricIron,
-            compressedMeteoricIron, largeCellSteel, compressedMeteoricIron,
-            compressedMeteoricIron, compressedMeteoricIron, compressedMeteoricIron
-        });
-
-        // --- Heavy Oxygen Tank
-        addShapedRecipe(new ItemStack(GCItems.oxTankHeavy, 1, GCItems.oxTankHeavy.getMaxDamage()), new Object[] {
-                plateDesh, GCBlocks.oxygenPipe, plateDesh,
-                plateDesh, largeCellTungSteel, plateDesh,
-                plateDesh, plateDesh, plateDesh
-        });
-
-        // --- Super Heavy Oxygen Tank
-        addShapedRecipe(new ItemStack(GCItems.oxTankSuperHeavy, 1, GCItems.oxTankSuperHeavy.getMaxDamage()), new Object[] {
-            compressedDualTitanium, GCBlocks.oxygenPipe, compressedDualTitanium,
-            compressedDualTitanium, largeCellIridium, compressedDualTitanium,
-            compressedDualTitanium, compressedDualTitanium, compressedDualTitanium
-        });
-
-        // --- Ultra Heavy Oxygen Tank
-        addShapedRecipe(new ItemStack(GCItems.oxTankUltraHeavy, 1, GCItems.oxTankUltraHeavy.getMaxDamage()), new Object[] {
-            tripleTrinium, GCBlocks.oxygenPipe, tripleTrinium,
-            tripleTrinium, largeCellOsmium, tripleTrinium,
-            tripleTrinium, tripleTrinium, tripleTrinium
-        });
-
-        // --- Sensor Lens
-        addShapedRecipe(sensorLens, new Object[] {
-            ringRedAlloy, lensDiamond, ringRedAlloy,
-            circuitAdv, lensReinfGlass, circuitAdv,
-            screwSSteel, screwdriver, screwSSteel
-        });
-
-        // --- Sensor Glasses
-        addShapedRecipe(new ItemStack(GCItems.sensorGlasses, 1, 0), new Object[] {
-            circuitData, screwMeteor, circuitData,
-            ringDesh, boltDesh, ringDesh,
-            sensorLens, screwdriver, sensorLens
-        });
+        ExtremeCraftingManager.getInstance().addRecipe(getModItem("GalacticraftCore", "item.infiniteOxygen", 1),
+                "  abbba  ",
+                " abcccba ",
+                " bcdedcb ",
+                " bcfgfcb ",
+                " bcdhdcb ",
+                " bcfgfcb ",
+                " bcdedcb ",
+                " abcccba ",
+                "  abbba  ",
+                ' ', null,
+                'a', "ingotInfinity",
+                'b', "plateNeutronium",
+                'c', getModItem("dreamcraft", "item.HeavyDutyPlateTier8", 1),
+                'd', getModItem("GalacticraftCore", "item.oxygenTankUltraHeavyFull", 1),
+                'e', getModItem("gregtech", "gt.metaitem.01", 1, 32616),
+                'f', getModItem("gregtech", "gt.metaitem.03", 1, 32105),
+                'g', "pipeSmallInfinity",
+                'h', getModItem("gregtech", "gt.blockmachines", 1, 122));
     }
 
     @SuppressWarnings("unchecked")
@@ -662,7 +378,7 @@ public class RecipeManagerGTNH {
         input.put(1, new ItemStack(GCItems.basicItem, 1, 19));
         input.put(2, new ItemStack(GCItems.partBuggy, 1, 1));
         if (GalacticraftCore.isGalaxySpaceLoaded) {
-            input.put(3, GT_ModHandler.getModItem(Constants.MOD_ID_GALAXYSPACE, "item.RocketControlComputer", 1, 100));
+            input.put(3, getModItem(Constants.MOD_ID_GALAXYSPACE, "item.RocketControlComputer", 1, 100));
         }
         for (int i = 4; i <= 7; i++) {
             input.put(i, new ItemStack(GCItems.partBuggy));

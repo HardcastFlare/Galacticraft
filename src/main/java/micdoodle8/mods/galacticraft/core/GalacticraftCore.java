@@ -86,6 +86,7 @@ import micdoodle8.mods.galacticraft.core.network.ConnectionPacket;
 import micdoodle8.mods.galacticraft.core.network.GalacticraftChannelHandler;
 import micdoodle8.mods.galacticraft.core.proxy.CommonProxyCore;
 import micdoodle8.mods.galacticraft.core.recipe.RecipeManagerGC;
+import micdoodle8.mods.galacticraft.core.recipe.RecipeManagerGTNH;
 import micdoodle8.mods.galacticraft.core.schematic.SchematicAdd;
 import micdoodle8.mods.galacticraft.core.schematic.SchematicMoonBuggy;
 import micdoodle8.mods.galacticraft.core.schematic.SchematicRocketT1;
@@ -592,7 +593,11 @@ public class GalacticraftCore {
         }
 
         CompatibilityManager.checkForCompatibleMods();
-        RecipeManagerGC.loadRecipes();
+        //        if (Loader.isModLoaded("dreamcraft")) {
+        RecipeManagerGTNH.loadRecipes();
+        //        } else {
+        //            RecipeManagerGC.loadRecipes();
+        //        }
         NetworkRegistry.INSTANCE.registerGuiHandler(instance, new GuiHandler());
         FMLCommonHandler.instance().bus().register(new TickHandlerServer());
         GalaxyRegistry.refreshGalaxies();
@@ -654,7 +659,11 @@ public class GalacticraftCore {
             }
         }
 
-        RecipeManagerGC.setConfigurableRecipes();
+        //        if (Loader.isModLoaded("dreamcraft")) {
+        //RecipeManagerGTNH.setConfigurableRecipes();
+        //        } else {
+        //            RecipeManagerGC.setConfigurableRecipes();
+        //        }
     }
 
     @EventHandler
